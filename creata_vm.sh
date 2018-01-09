@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+function show_error(){
+    echo -e "\033[31m$1\033[0m"
+}
+
 while getopts "c:" arg;do
     case ${arg} in
         c)
@@ -39,7 +43,7 @@ cmd="nova boot --flavor=${flavor} \
 --nic net-name=${P1_NET},vif-model=${vif_model} \
 --image ${image_id} ${vm_name} "
 
-cmd="$cmd --availability-zone nova:wfq-1"
+#cmd="$cmd --availability-zone nova:wfq-1"
 #if [ "${vms}" == "1" ];then
 #    cmds=("${cmd}")
 #elif [ "${vms}" == "2" ];then
@@ -55,21 +59,34 @@ cmd="$cmd --availability-zone nova:wfq-1"
     # create VMs
     tmp=`eval ${cmd}`
     vm_id=`echo "${tmp}"|egrep "\bid\b" |awk -F \| '{print $3}'|sed 's/\s//g'`
-    sleep 5
+    sleep 2
     while [ 1 ];do
+        sleep 3
         vm_info=`nova show $vm_id`
         status=`echo "$vm_info" |egrep -w "status" |awk -F \| '{print $3}'|sed 's/\s//g'`
         if [ "$status" == "ACTIVE" ];then
+            echo "New creating VM status is $status, waiting UP"
             break
+        elif [ "$status" == "ERROR" ];then
+            show_error "New creating VM status is $status"
+            error_message=`echo "${vm_info}" |grep "| fault" |awk -F \| '{print $3}'`
+            show_error "${error_message}"
+            exit 1
         else
-            echo "VM is $status, waiting ACTIVE"
+            echo "New creating VM status is $status, waiting ACTIVE"
         fi
     done
     export ip=`echo "$vm_info" |grep "ssh network" |awk -F \| '{print $3}' |sed 's/\s//g'`
 #done
-echo ${ip}
+
+
 if [ "${ip}" == "" ] || [ "${case_shell}" == "" ];then
+    show_error "ip: ${ip}"
+    show_error "case script: ${case_shell}"
     exit 1
+else
+    echo "ip: ${ip}"
+    echo "case script: ${case_shell}"
 fi
 cd ..
 sleep 10
