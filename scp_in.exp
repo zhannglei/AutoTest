@@ -24,6 +24,7 @@ global case_shell
 
 spawn scp -r $files wrsroot@$host0:~
 expect "*password:*" { send "$wrsrootpswd\r" }
+expect eof
 sleep 1
 spawn ssh $host0
 expect "*password:*" { send "$wrsrootpswd\r" }
@@ -38,7 +39,8 @@ send "sudo ip netns exec ${netns} scp -r /home/wrsroot/$files root@$host1:~\r"
 expect "Password:" {send "$wrsrootpswd\r"}
 expect "*(yes/no)" {send "yes\r"}
 expect "*root*"  {send "$rootpswd\r"}
-sleep 2
+expect eof
+sleep 1
 send "sudo ip netns exec ${netns} ssh root@$host1\r"
 expect "Password:" {send "$wrsrootpswd\r"}
 expect "*(yes/no)" {send "yes\r"}
@@ -46,7 +48,7 @@ expect "*root*"  {send "$rootpswd\r"}
 sleep 3
 send "chmod -R 777 /root\r"
 send "${case_shell}\r"
-interact
+expect eof
 }
 
 main

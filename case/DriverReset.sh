@@ -6,6 +6,7 @@
 for eth in eth1 eth2;do
     ifconfig ${eth} up
     sleep 2
+    logger "`ifconfig ${eth} |grep ${eth}` [DEBUG]"
     eth_info=`ifconfig ${eth} |grep ${eth} |awk -F \< '{print $2}' |awk -F \> '{print $1}'`
 
     if [[ "${eth_info}" == "UP,BROADCAST,RUNNING,MULTICAST" ]];then
@@ -13,6 +14,7 @@ for eth in eth1 eth2;do
     else
         logger "${eth} up status check [FAIL]"
     fi
+    logger "`ethtool ${eth}` [DEBUG]"
     link=`ethtool ${eth} |grep "Link detected:" |awk '{print $3}'`
     if [ "${link}" == "yes" ];then
         logger "${eth} up Link Detected ${link} [PASS]"
@@ -25,6 +27,7 @@ done
 for eth in eth1 eth2;do
     ifconfig ${eth} down
     sleep 2
+    logger "`ifconfig ${eth} |grep ${eth}` [DEBUG]"
     eth_info=`ifconfig ${eth} |grep ${eth} |awk -F \< '{print $2}' |awk -F \> '{print $1}'`
 
     if [[ "${eth_info}" == "BROADCAST,MULTICAST" ]];then
@@ -32,6 +35,7 @@ for eth in eth1 eth2;do
     else
         logger "${eth} down status check [PASS]"
     fi
+    logger "`ethtool ${eth}` [DEBUG]"
     link=`ethtool ${eth} |grep "Link detected:" |awk '{print $3}'`
     if [ "${link}" == "no" ];then
         logger "${eth} down Link Detected ${link} [PASS]"
