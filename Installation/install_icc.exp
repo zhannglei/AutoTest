@@ -1,0 +1,76 @@
+#!/usr/bin/expect -f
+
+set timeout 100
+
+spawn ./install.sh
+
+expect "to quit:" {
+    send "\r"
+}
+
+#step 2
+expect "to quit." {
+    send "q"
+}
+
+expect "menu:" {
+    send "accept\r"
+}
+
+expect "*:" {
+    send "\r"
+}
+
+#step 3
+expect "*:" {
+    send "\r"
+}
+
+expect "*:" {
+    send "1\r"
+}
+
+#step 4
+expect "quit" {
+    send "q"
+}
+
+expect "*:" {
+    send "1\r"
+}
+
+expect "*:" {
+    send "y\r"
+}
+
+#step 5
+expect "*:" {
+    send "\r"
+}
+
+expect "*:" {
+    send "\r"
+}
+
+expect "*:" {
+    send "\r"
+}
+
+expect "*:" {
+    send "\r"
+}
+
+expect "*:" {
+    send "\r"
+}
+
+#step 7
+set timeout 500
+expect -re "Press \"Enter\" key to quit:" {
+    send "\r"
+}
+
+set timeout 300
+expect eof
+
+

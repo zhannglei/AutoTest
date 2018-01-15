@@ -20,4 +20,4 @@ if [ "${get_huge_total}" == "${exp_huge_total}" ] && \
 else
     logger "Hugepage check [FAIL]"
 fi
-logger "`cat /proc/meminfo |grep -i HugePage` [DEBUG]"
+logger "`cat /proc/meminfo |grep -i HugePage` [INFO]"

@@ -1,0 +1,14 @@
+#!/usr/bin/expect -f
+set cmd  [lindex $argv 0]
+set mac1 [lindex $argv 1]
+set mac2 [lindex $argv 2]
+
+set timeout 6
+
+spawn ${cmd}
+
+expect "testpmd>" {send "set fwd mac \r"}
+expect "testpmd>" {send "set all size 512 \r"}
+expect "testpmd>" {send "start \r"}
+
+interact

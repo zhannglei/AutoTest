@@ -1,0 +1,15 @@
+
+#!/usr/bin/expect -f
+set mac1 [lindex $argv 0]
+set mac2 [lindex $argv 1]
+
+set timeout 3 
+
+spawn ./pktgen -c 0x7 -n 2 --huge-dir /mnt/huge --proc-type primary --file-prefix pg -- -p 0xFFFF -P -N -m \"\[1:1\].0, \[2:2\].1\" --crc-strip 
+
+expect "pktgen>" {send "set 0 dst mac $mac1 \r"}
+expect "pktgen>" {send "set 1 dst mac $mac2 \r"}
+expect "pktgen>" {send "set all size 512 \r"}
+expect "pktgen>" {send "start all \r"}
+
+interact
