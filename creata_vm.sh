@@ -24,7 +24,8 @@ DATE=`date "+%Y%m%d-%H%M%S"`
 if [ "${case_shell}" != "" ];then
     case=`basename ${case_shell} .sh`
     LOGFILE=${case}_${DATE}.log
-    echo "${LOGFILE}" > tmp
+    sed -i "/^${case} /d" tmp
+    echo "$case ${LOGFILE}" >> tmp
 fi
 LOGFILE_PATH=~/log/control/${LOGFILE}
 source case/common.sh
@@ -105,17 +106,16 @@ transfer_node=`neutron dhcp-agent-list-hosting-net ${SSH_NET} |grep True |head -
 netns=qdhcp-`neutron  net-show ${SSH_NET} |egrep -w id |awk '{print $4}'`
 
 [ ! -d ~/log/control ] && mkdir -p ~/log/control
-[ ! -d ~/log/node ] && mkdir -p ~/log/node
 [ ! -d ~/log/case ] && mkdir -p ~/log/case
 
 #copy package to VM
 for file in ${files};do
-    AutoTest/scp_in.exp ${transfer_node} ${netns} ${ip}  ${file}
+    AutoTest/scp_in.exp ${transfer_node} ${netns} ${ip}  ${file} |tee -a ${LOGFILE_PATH}
 done
 
 #copy AutoTest script to VM
-AutoTest/scp_in.exp ${transfer_node} ${netns} ${ip}  AutoTest ${case_shell}
+AutoTest/scp_in.exp ${transfer_node} ${netns} ${ip}  AutoTest ${case_shell} |tee -a ${LOGFILE_PATH}
 
 #copy log file out
 sleep 3
-AutoTest/scp_out.exp ${transfer_node} ${netns} ${ip} ${LOGFILE}
+AutoTest/scp_out.exp ${transfer_node} ${netns} ${ip} ${LOGFILE} |tee -a ${LOGFILE_PATH}
