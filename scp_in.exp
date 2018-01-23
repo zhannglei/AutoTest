@@ -14,47 +14,75 @@ string tolower $host_e
 
 proc main {} {
 
-global host0
-global netns
-global wrsrootpswd
-global host1
-global rootpswd
-global files
-global case_shell
+    global host0
+    global netns
+    global wrsrootpswd
+    global host1
+    global rootpswd
+    global files
+    global case_shell
 
 
-spawn scp -r $files wrsroot@$host0:~
-set timeout 200
-expect "*password:*" { send "$wrsrootpswd\r" }
-expect eof
-set timeout 3
-sleep 1
-spawn ssh $host0
-expect "*password:*" { send "$wrsrootpswd\r" }
-sleep 1
-send "sudo sed -i '/$host1/d' /root/.ssh/known_hosts\r" 
-expect "Password" { send "$wrsrootpswd\r" }
-sleep 1
-send "sudo sed -i '/^*/d' /etc/ssh/ssh_known_hosts\r"
-sleep 1
+    spawn scp -r $files wrsroot@$host0:~
+    set timeout 200
+    expect "*password:*" { send "$wrsrootpswd\r" }
+    expect eof
+    set timeout 3
+    sleep 1
+    spawn ssh $host0
+    expect "*password:*" { send "$wrsrootpswd\r" }
+    expect ":~" { send "sudo sed -i '/$host1/d' /root/.ssh/known_hosts\r" }
+    expect "Password" { send "$wrsrootpswd\r" }
+    sleep 1
+    send "sudo sed -i '/^*/d' /etc/ssh/ssh_known_hosts\r"
+    sleep 1
 
-send "sudo ip netns exec ${netns} scp -r /home/wrsroot/`basename $files` root@$host1:~\r"
-expect "Password:" {send "$wrsrootpswd\r"}
-expect "*(yes/no)" {send "yes\r"}
-set timeout 200
-expect "*root*"  {send "$rootpswd\r"}
-expect ":~" {send "\r"}
-set timeout 3
-if { "${case_shell}" != "" } {
-    send "sudo ip netns exec ${netns} ssh root@$host1\r"
+    send "sudo ip netns exec ${netns} scp -r /home/wrsroot/`basename $files` root@$host1:~\r"
     expect "Password:" {send "$wrsrootpswd\r"}
     expect "*(yes/no)" {send "yes\r"}
+    set timeout 200
     expect "*root*"  {send "$rootpswd\r"}
-    sleep 3
-    send "chmod -R 777 /root/AutoTest\r"
-    set timeout 100000
-    send "${case_shell}\r"
-    expect -re "--check finished--" {send "exit\r"}
+    expect ":~" {send "\r"}
+    set timeout 3
+    if { "${case_shell}" != "" } {
+        send "sudo ip netns exec ${netns} ssh root@$host1\r"
+        expect "Password:" {send "$wrsrootpswd\r"}
+        expect "*(yes/no)" {send "yes\r"}
+        expect "*root*"  {send "$rootpswd\r"}
+        sleep 3
+        send "chmod -R 777 /root/AutoTest\r"
+        send "AutoTest/check_boot.sh\r"
+
+        expect "fail" {
+            send "exit\r"
+            sleep 30
+            send "sudo ip netns exec ${netns} ssh root@$host1\r"
+            expect "Password:" {send "$wrsrootpswd\r"}
+            expect "*(yes/no)" {send "yes\r"}
+            expect "*root*"  {send "$rootpswd\r"}
+            sleep 3
+            }
+
+        set timeout 100000
+        send "${case_shell}\r"
+        expect {
+            -re "--check finished--" {
+                    send "exit\r"
+                    }
+            -re "--check continue--" {
+                    send "exit\r"
+                    sleep 30
+                    set timeout 3
+                    send "sudo ip netns exec ${netns} ssh root@$host1\r"
+                    expect "Password:" {send "$wrsrootpswd\r"}
+                    expect "*(yes/no)" {send "yes\r"}
+                    expect "*root*"  {send "$rootpswd\r"}
+                    sleep 3
+                    send "${case_shell}\r"
+                    set timeout 100000
+                    exp_continue
+                    }
+        }
     }
 }
 
