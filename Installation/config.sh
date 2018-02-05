@@ -8,6 +8,7 @@ export SCRIPT_FOLDER=${PWD}
 export BASE_FOLDER=/root/APP
 export SCRIPT_FOLDER=/root/AutoTest/Installation
 export DPDK_FOLDER=${BASE_FOLDER}/Utilities/DPDK
+export QAT_FOLDER=${BASE_FOLDER}/Drivers/QAT
 export PKTGEN_FOLDER=${BASE_FOLDER}/Utilities/Pktgen
 export INSTALL_FOLDER=~/BKC
 [ ! -d ${INSTALL_FOLDER} ] && mkdir ${INSTALL_FOLDER}

@@ -2,7 +2,7 @@
 
 cd $(dirname ${BASH_SOURCE[0]})
 
-diff Installation/extlinux.conf /boot/extlinux.conf >/dev/null
+diff Installation/extlinux.conf /boot/extlinux.conf > /dev/null
 if [ $? != 0 ];then
     if [[ "$HOSTNAME" =~ "192" ]];then
         cp Installation/extlinux.conf /boot/extlinux.conf -f

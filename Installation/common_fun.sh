@@ -42,7 +42,7 @@ function check_rpm(){
     rpms="gcc-c++-4.8.5-16.el7.x86_64
     kernel-devel-3.10.0-693.el7.x86_64
     libhugetlbfs-devel-2.16-12.el7.x86_64"
-    for rpm in rpms;do
+    for rpm in ${rpms};do
         rpm -q $rpm >> /dev/null
         if [ $? != 0 ];then
             echo "$rpm not installed"

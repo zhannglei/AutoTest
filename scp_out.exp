@@ -1,4 +1,6 @@
 #!/usr/bin/expect
+
+# AutoTest/scp_out.exp ${transfer_node} ${netns} ${ip} ${LOGFILE} |tee -a ${LOGFILE_PATH}
 set host0 [lindex $argv 0]
 set netns [lindex $argv 1]
 set host1 [lindex $argv 2]

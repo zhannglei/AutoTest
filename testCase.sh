@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
+function show_error(){
+    echo -e "\033[31m$1\033[0m"
+}
 
-
+usage="usage: ./testCase -c <config file path>
+example: ./testCase -c config/vMemory_MemInfo.ini"
 while getopts "c:" arg;do
     case ${arg} in
         c)
@@ -8,12 +12,19 @@ while getopts "c:" arg;do
             ;;
         ?)
             echo "arg not found"
+            echo "${usage}"
             exit 1
             ;;
     esac
 done
 if [ ! -f "${config}" ];then
-    echo  "case not found"
+    show_error  "case config "${config}" is not found"
+    echo "${usage}"
+    exit 1
+fi
+if [ "${config##*.}" != "ini" ];then
+    show_error  "case config "${config}" is not correct"
+    echo "${usage}"
     exit 1
 fi
 

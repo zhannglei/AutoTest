@@ -14,8 +14,11 @@ export RTE_SDK=${INSTALL_FOLDER}/${dpdk_pkg}
 add_bashrc "export RTE_SDK=${INSTALL_FOLDER}/${dpdk_pkg}"
 export RTE_TARGET=x86_64-native-linuxapp-icc
 add_bashrc "export RTE_TARGET=x86_64-native-linuxapp-icc"
+
 cd ${INSTALL_FOLDER}
 cd ${dpdk_pkg}
+
+sed -i 's/CONFIG_RTE_LIBRTE_PMD_QAT=n/CONFIG_RTE_LIBRTE_PMD_QAT=y/g' config/common_base
 
 if [ -f x86_64-native-linuxapp-icc/app/testpmd ];then
     echo "DPDK has already installed."
@@ -64,6 +67,19 @@ else
         echo "l2fwd is installed successfully."
     else
         echo "l2fwd is installed failed."
+        exit 1
+    fi
+fi
+
+cd ${INSTALL_FOLDER}/${dpdk_pkg}examples/l2fwd-crypto
+if [ -f build/l2fwd-crypto ];then
+    echo "l2fwd-crypto has already installed."
+else
+    make
+    if [ -f build/l2fwd-crypto ];then
+        echo "l2fwd-crypto is installed successfully."
+    else
+        echo "l2fwd-crypto is installed failed."
         exit 1
     fi
 fi

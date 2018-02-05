@@ -22,10 +22,6 @@ function logger(){
     fi
 }
 
-function show_error(){
-    echo -e "\033[31m$1\033[0m"
-}
-
 function sleep_seconds(){
     text=$1
     second=$2

@@ -11,19 +11,19 @@ fi
 *    Wireless BKC Auto Installation     *
 *****************************************
 
-1. Install all packages and configure BKC environment (RPM dependency, ICC with licenses, DPDK, PKTGEN, extlinux.conf)
+1. Install all drivers, utilities and BKC testing tools with required patches(step2-7)
 2. Install RPM dependency Only
 3. Install ICC with licenses Only
 4. Install DPDK Only
 5. Install PKTGEN Only
-6. System configuration to update extlinux.conf
-7. ONLY FOR BKC TESTING, install all packages and configure BKC environment with special patches
+6. Install QAT Only
+7. System configuration to update extlinux.conf
 8. Presetting for test (Bind DPDK port, mount hugepage)
 0. Exit
 Input you choice:"
 
 while [ 1 ]; do
-    export ADD_PATCH=0
+    export ADD_PATCH=1
     read -p "$choose_info" choose
     stop_trap_signal
     case "$choose" in
@@ -39,6 +39,8 @@ while [ 1 ]; do
             . ./install_dpdk.sh
             cd ${SCRIPT_FOLDER}
             . ./install_pktgen.sh
+            cd ${SCRIPT_FOLDER}
+            . ./install_qat.sh
             cd ${SCRIPT_FOLDER}
             . ./config_env.sh
             ;;
@@ -60,24 +62,15 @@ while [ 1 ]; do
             ;;
         "6")
             cd ${SCRIPT_FOLDER}
+            . ./install_qat.sh
+            ;;
+        "7")
+            cd ${SCRIPT_FOLDER}
             . ./config_env.sh
             ;;
         "8")
             cd ${SCRIPT_FOLDER}
             . ./bind_port.sh
-            ;;
-        "7")
-            export ADD_PATCH=1
-            cd ${SCRIPT_FOLDER}
-            . ./install_rpm.sh
-            cd ${SCRIPT_FOLDER}
-            . ./install_icc.sh
-            cd ${SCRIPT_FOLDER}
-            . ./install_dpdk.sh
-            cd ${SCRIPT_FOLDER}
-            . ./install_pktgen.sh
-            cd ${SCRIPT_FOLDER}
-            . ./config_env.sh
             ;;
         "*")
             echo "Your choose is not match, please try again."

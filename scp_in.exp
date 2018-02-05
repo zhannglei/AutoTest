@@ -1,4 +1,6 @@
 #!/usr/bin/expect
+
+# AutoTest/scp_in.exp ${transfer_node} ${netns} ${ip}  ${file} |tee -a ${LOGFILE_PATH}
 set host0 [lindex $argv 0]
 set netns [lindex $argv 1]
 set host1 [lindex $argv 2]
@@ -22,17 +24,18 @@ proc main {} {
     global files
     global case_shell
 
-
     spawn scp -r $files wrsroot@$host0:~
     set timeout 200
     expect "*password:*" { send "$wrsrootpswd\r" }
     expect eof
-    set timeout 3
+    set timeout 50
     sleep 1
+
     spawn ssh $host0
     expect "*password:*" { send "$wrsrootpswd\r" }
+
     expect ":~" { send "sudo sed -i '/$host1/d' /root/.ssh/known_hosts\r" }
-    expect "Password" { send "$wrsrootpswd\r" }
+    expect "Password:" { send "$wrsrootpswd\r" }
     sleep 1
     send "sudo sed -i '/^*/d' /etc/ssh/ssh_known_hosts\r"
     sleep 1
@@ -64,7 +67,7 @@ proc main {} {
             }
 
         set timeout 100000
-        send "${case_shell}\r"
+            send "${case_shell}\r"
         expect {
             -re "--check finished--" {
                     send "exit\r"
