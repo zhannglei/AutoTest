@@ -1,0 +1,25 @@
+#!/usr/bin/expect -f
+
+set timeout 200
+
+spawn ./installer.sh
+
+expect "0  Exit" {send "4\r"}
+
+sleep 2
+send "\r"
+sleep 2
+send "\r"
+sleep 5
+send "\r"
+
+expect "0  Exit" {send "6\r"}
+
+sleep 2
+send "\r"
+sleep 2
+send "\r"
+sleep 5
+send "\r"
+
+expect "0  Exit" {send "0\r"}

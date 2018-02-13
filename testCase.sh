@@ -32,12 +32,11 @@ source /etc/nova/openrc
 source ${config}
 cd $(dirname ${BASH_SOURCE[0]})
 DATE=`date "+%Y%m%d-%H%M%S"`
-if [ "${case_shell}" != "" ];then
-    case=`basename ${case_shell} .sh`
-    LOGFILE=${case}_${DATE}.log
-    sed -i "/^${case} /d" tmp
-    echo "$case ${LOGFILE}" >> tmp
-fi
+case=`basename ${case_shell} .sh`
+TMPFILE=tmp/$case
+[ -f ${TMPFILE} ] && rm ${TMPFILE}
+LOGFILE=${case}_${DATE}.log
+
 LOGFILE_PATH=~/log/control/${LOGFILE}
 source case/common.sh
 
@@ -47,10 +46,14 @@ P1_NET=A-P1
 
 # neutron dhcp-agent-list-hosting-net ssh
 # neutron  net-show
-
+node_vm_info=""
 nodes=$(nova hypervisor-list |grep enabled |awk '{print $4}')
 for node in ${nodes};do
     tmp=$(nova hypervisor-show ${node})
+    total=`echo ${tmp} |grep -w vcpus_node |awk -F \| '{print $3}' |jq '.["0"]'`
+    used=`echo ${tmp} |grep -w vcpus_used |awk '{print $4}' |awk -F \. '{print $1}'`
+    can_vms=$(($(($total-$used))/4))
+    node_vm_info=$node_vm_info" $node|$can_vms"
 done
 
 image_id=$(glance image-list |egrep "\s${image_name}\s" |awk '{print $2}')
@@ -60,22 +63,40 @@ cmd="nova boot --flavor=${flavor} \
 --nic net-name=${SSH_NET} \
 --nic net-name=${P0_NET},vif-model=${vif_model} \
 --nic net-name=${P1_NET},vif-model=${vif_model} \
---image ${image_id} ${vm_name} "
+--image ${image_id} "
 
-#cmd="$cmd --availability-zone nova:wfq-1"
-#if [ "${vms}" == "1" ];then
-#    cmds=("${cmd}")
-#elif [ "${vms}" == "2" ];then
-#    if [ "${hosts}" == "1" ];then
-#        echo "This config not completed"
-#    elif [ "${hosts}" == "2" ];then
-#        cmd1="$cmd --availability-zone nova:wfq-0"
-#        cmd2="$cmd --availability-zone nova:wfq-1"
-#        cmds=("${cmd1}" "${cmd2}")
-#    fi
-#fi
-#for ((i=0;i<${#cmds[*]};i++));do
+declare -a cmds
+if [ "${vms}" == "1" ];then
+    cmds[${#cmds[*]}]="${cmd} ${vm_name}"
+elif [ "${vms}" == "2" ];then
+    for i in  $node_vm_info; do
+        nod=`echo "$i" |awk -F\| '{print $1}'`
+        vms=`echo "$i" |awk -F\| '{print $2}'`
+        if [ "${hosts}" == "1" ];then
+            echo "This config not completed"
+            if [[ $vms >= 2 ]];then
+                while [[ ${#cmds[*]} < ${vms} ]];do
+                    cmds[${#cmds[*]}]="$cmd ${vm_name}_${#cmds[*]} --availability-zone nova:${nod}"
+                done
+            fi
+        elif [ "${hosts}" == "2" ];then
+            if [[ $vms >= 1 ]];then
+                cmds[${#cmds[*]}]="$cmd ${vm_name}_${nod} --availability-zone nova:${nod}"
+                if [[ ${#cmds[*]} >= ${vms} ]];then
+                    break
+                fi
+            fi
+        fi
+    done
+    if [[ ${#cmds[*]} < 2 ]];then
+        echo "not enough hosts found"
+        exit 1
+    fi
+fi
+
+for ((i=0;i<${#cmds[*]};i++));do
     # create VMs
+    cmd=${cmds[i]}
     tmp=`eval ${cmd}`
     vm_id=`echo "${tmp}"|egrep "\bid\b" |awk -F \| '{print $3}'|sed 's/\s//g'`
     sleep 2
@@ -95,18 +116,27 @@ cmd="nova boot --flavor=${flavor} \
             logger "New creating VM status is $status, waiting ACTIVE [DEBUG]"
         fi
     done
-    export ip=`echo "$vm_info" |grep "ssh network" |awk -F \| '{print $3}' |sed 's/\s//g'`
-#done
+    SSH_IP=`echo "$vm_info" |grep "${SSH_NET} network" |awk -F \| '{print $3}' |sed 's/\s//g'`
+    SSH_MAC=`echo "$vm_info" |grep "\"${SSH_NET}\""|awk -F \| '{print $3}' |jq '.nic1.mac_address' |sed s/\"//g`
+    P0_IP=`echo "$vm_info" |grep "${P0_NET} network" |awk -F \| '{print $3}' |sed 's/\s//g'`
+    P0_MAC=`echo "$vm_info" |grep "\"${P0_NET}\""|awk -F \| '{print $3}' |jq '.nic1.mac_address' |sed s/\"//g`
+    P1_IP=`echo "$vm_info" |grep "${P1_NET} network" |awk -F \| '{print $3}' |sed 's/\s//g'`
+    P1_MAC=`echo "$vm_info" |grep "\"${P1_NET}\""|awk -F \| '{print $3}' |jq '.nic1.mac_address' |sed s/\"//g`
+    if [ "${SSH_NET}" == "" ];then
+        logger "Create VM [FAIL]"
+        exit 1
+    else
+        logger "Create VM [PASS]"
+    fi
+    LOGFILE=${case}_${DATE}_${i}.LOG
+    echo "COUNT=${i} SSH_IP=${SSH_IP} SSH_MAC=${SSH_MAC} \
+    P0_IP=${P0_IP} P0_MAC=${P0_MAC} \
+    P1_IP=${P1_IP} P1_MAC=${P1_MAC} \
+    LOGFILE=${LOGFILE} " >> ${TMPFILE}
 
-logger "ip: ${ip} [DEBUG]"
-logger "case script: ${case_shell} [DEBUG]"
-if [ "${ip}" == "" ];then
-    logger "Create VM [FAIL]"
-    exit 1
-else
-    logger "Create VM [PASS]"
-fi
+done
 
+logger "`cat ${TMPFILE}` [DEBUG]"
 cd ..
 if [ "${time_delay}" == "" ];then
     time_delay=10
@@ -119,18 +149,20 @@ netns=qdhcp-`neutron  net-show ${SSH_NET} |egrep -w id |awk '{print $4}'`
 [ ! -d ~/log/control ] && mkdir -p ~/log/control
 [ ! -d ~/log/case ] && mkdir -p ~/log/case
 
-#copy package to VM
-for file in ${files};do
-    logger "AutoTest/scp_in.exp ${transfer_node} ${netns} ${ip}  ${file} [DEBUG]"
-    AutoTest/scp_in.exp ${transfer_node} ${netns} ${ip}  ${file} |tee -a ${LOGFILE_PATH}
-done
+while read line;do
+    #copy package to VM
+    for file in ${files};do
+        logger "AutoTest/scp_in.exp ${transfer_node} ${netns} ${ip}  ${file} [DEBUG]"
+        AutoTest/scp_in.exp ${transfer_node} ${netns} ${ip}  ${file} |tee -a ${LOGFILE_PATH}
+    done
 
-#copy AutoTest script to VM
-logger "AutoTest/scp_in.exp ${transfer_node} ${netns} ${ip}  AutoTest ${case_shell} [DEBUG]"
-AutoTest/scp_in.exp ${transfer_node} ${netns} ${ip}  AutoTest ${case_shell} |tee -a ${LOGFILE_PATH}
+    #copy AutoTest script to VM
+    logger "AutoTest/scp_in.exp ${transfer_node} ${netns} ${ip}  AutoTest ${case_shell} [DEBUG]"
+    AutoTest/scp_in.exp ${transfer_node} ${netns} ${ip}  AutoTest ${case_shell} |tee -a ${LOGFILE_PATH}
 
 
-#copy log file out
-sleep 3
-logger "AutoTest/scp_out.exp ${transfer_node} ${netns} ${ip} ${LOGFILE} [DEBUG]"
-AutoTest/scp_out.exp ${transfer_node} ${netns} ${ip} ${LOGFILE} |tee -a ${LOGFILE_PATH}
+    #copy log file out
+    sleep 3
+    logger "AutoTest/scp_out.exp ${transfer_node} ${netns} ${ip} ${LOGFILE} [DEBUG]"
+    AutoTest/scp_out.exp ${transfer_node} ${netns} ${ip} ${LOGFILE} |tee -a ${LOGFILE_PATH}
+done < ${TMPFILE}
