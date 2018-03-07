@@ -14,5 +14,14 @@ cd ${SCRIPT_FOLDER}
 cd ${SCRIPT_FOLDER}
 . ./install_qat.sh
 
+
+
 cd ${INSTALL_FOLDER}/qat_package/build/
-./cpa_sample_code signOfLife=1
+./cpa_sample_code signOfLife=1 >> qat_test.log
+
+
+if [ `echo $?` == 0 ];then
+	logger "${case} --check finished-- [PASS]"
+else
+	logger "${case} --check finished-- [FAIL]"
+fi

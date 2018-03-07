@@ -6,7 +6,6 @@ cd $(dirname ${BASH_SOURCE[0]})
 . ./common.sh
 
 cd ../Installation
-
 . ./config.sh
 . ./common_fun.sh
 cd ${SCRIPT_FOLDER}

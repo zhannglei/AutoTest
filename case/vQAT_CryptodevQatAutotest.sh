@@ -62,7 +62,7 @@ if [ "${tests_total}" == "${exp_tests_total}" ] && \
 [ "${tests_skipped}" == "${exp_tests_skipped}" ] && \
 [ "${tests_executed}" == "${exp_tests_executed}" ] && \
 [ "${tests_unsupported}" == "${exp_tests_unsupported}" ] && \
-[ "${tests_passed}" == "${ecp_tests_passed}" ];then
+[ "${tests_passed}" == "${exp_tests_passed}" ];then
     logger "+ Test Suite Summary + Tests Total : ${tests_total} \
             + Tests Skipped : ${tests_skipped} \
             + Tests Executed : ${tests_executed} \
