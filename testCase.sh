@@ -31,11 +31,11 @@ fi
 source /etc/nova/openrc
 source ${config}
 cd $(dirname ${BASH_SOURCE[0]})
-DATE=`date "+%Y%m%d-%H%M%S"`
+DT=`date "+%Y%m%d-%H%M%S"`
 case=`basename ${case_shell} .sh`
 TMPFILE=tmp/$case
 [ -f ${TMPFILE} ] && rm ${TMPFILE}
-LOGFILE=${case}_${DATE}.log
+LOGFILE=${case}_${DT}.log
 
 LOGFILE_PATH=~/log/control/${LOGFILE}
 source case/common.sh
@@ -46,17 +46,18 @@ P1_NET=A-P1
 
 # neutron dhcp-agent-list-hosting-net ssh
 # neutron  net-show
+
 node_vm_info=""
 nodes=$(nova hypervisor-list |grep enabled |awk '{print $4}')
 for node in ${nodes};do
     tmp=$(nova hypervisor-show ${node})
-    total=`echo ${tmp} |grep -w vcpus_node |awk -F \| '{print $3}' |jq '.["0"]'`
-    used=`echo ${tmp} |grep -w vcpus_used |awk '{print $4}' |awk -F \. '{print $1}'`
+    total=`echo "${tmp}" |grep -w vcpus_node |awk -F \| '{print $3}' |jq '.["0"]'`
+    used=`echo "${tmp}" |grep -w vcpus_used |awk '{print $4}' |awk -F \. '{print $1}'`
     can_vms=$(($(($total-$used))/4))
     node_vm_info=$node_vm_info" $node|$can_vms"
 done
 
-image_id=$(glance image-list |egrep "\s${image_name}\s" |awk '{print $2}')
+image_id=$(glance image-list |egrep -i "\s${image_name}\s" |awk '{print $2}')
 
 # virtio pci-sriov
 cmd="nova boot --flavor=${flavor} \
@@ -71,24 +72,24 @@ if [ "${vms}" == "1" ];then
 elif [ "${vms}" == "2" ];then
     for i in  $node_vm_info; do
         nod=`echo "$i" |awk -F\| '{print $1}'`
-        vms=`echo "$i" |awk -F\| '{print $2}'`
+        unused_vms=`echo "$i" |awk -F\| '{print $2}'`
         if [ "${hosts}" == "1" ];then
             echo "This config not completed"
-            if [[ $vms >= 2 ]];then
-                while [[ ${#cmds[*]} < ${vms} ]];do
+            if [[ ${unused_vms} -ge ${vms} ]];then
+                while [[ ${#cmds[*]} -lt ${vms} ]];do
                     cmds[${#cmds[*]}]="$cmd ${vm_name}_${#cmds[*]} --availability-zone nova:${nod}"
                 done
             fi
         elif [ "${hosts}" == "2" ];then
-            if [[ $vms >= 1 ]];then
+            if [[ ${unused_vms} -ge 1 ]];then
                 cmds[${#cmds[*]}]="$cmd ${vm_name}_${nod} --availability-zone nova:${nod}"
-                if [[ ${#cmds[*]} >= ${vms} ]];then
+                if [[ ${#cmds[*]} -ge ${vms} ]];then
                     break
                 fi
             fi
         fi
     done
-    if [[ ${#cmds[*]} < 2 ]];then
+    if [[ ${#cmds[*]} -lt ${vms} ]];then
         echo "not enough hosts found"
         exit 1
     fi
@@ -116,6 +117,7 @@ for ((i=0;i<${#cmds[*]};i++));do
             logger "New creating VM status is $status, waiting ACTIVE [DEBUG]"
         fi
     done
+    sleep 5
     SSH_IP=`echo "$vm_info" |grep "${SSH_NET} network" |awk -F \| '{print $3}' |sed 's/\s//g'`
     SSH_MAC=`echo "$vm_info" |grep "\"${SSH_NET}\""|awk -F \| '{print $3}' |jq '.nic1.mac_address' |sed s/\"//g`
     P0_IP=`echo "$vm_info" |grep "${P0_NET} network" |awk -F \| '{print $3}' |sed 's/\s//g'`
@@ -128,7 +130,7 @@ for ((i=0;i<${#cmds[*]};i++));do
     else
         logger "Create VM [PASS]"
     fi
-    LOGFILE=${case}_${DATE}_${i}.LOG
+    LOGFILE=${case}_${DT}_${i}.LOG
     echo "COUNT=${i} SSH_IP=${SSH_IP} SSH_MAC=${SSH_MAC} \
     P0_IP=${P0_IP} P0_MAC=${P0_MAC} \
     P1_IP=${P1_IP} P1_MAC=${P1_MAC} \
@@ -150,6 +152,8 @@ netns=qdhcp-`neutron  net-show ${SSH_NET} |egrep -w id |awk '{print $4}'`
 [ ! -d ~/log/case ] && mkdir -p ~/log/case
 
 while read line;do
+    ip=`echo ${line} |sed 's/ /\n/g' |grep '^SSH_IP=' |awk -F \= '{print $2}'`
+    LOGFILE=`echo ${line} |sed 's/ /\n/g' |grep '^LOGFILE=' |awk -F \= '{print $2}'`
     #copy package to VM
     for file in ${files};do
         logger "AutoTest/scp_in.exp ${transfer_node} ${netns} ${ip}  ${file} [DEBUG]"
@@ -165,4 +169,4 @@ while read line;do
     sleep 3
     logger "AutoTest/scp_out.exp ${transfer_node} ${netns} ${ip} ${LOGFILE} [DEBUG]"
     AutoTest/scp_out.exp ${transfer_node} ${netns} ${ip} ${LOGFILE} |tee -a ${LOGFILE_PATH}
-done < ${TMPFILE}
+done < AutoTest/${TMPFILE}

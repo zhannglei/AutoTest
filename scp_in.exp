@@ -28,7 +28,7 @@ proc main {} {
     set timeout 200
     expect "*password:*" { send "$wrsrootpswd\r" }
     expect eof
-    set timeout 50
+    set timeout 3
     sleep 1
 
     spawn ssh $host0
