@@ -6,6 +6,8 @@ function logger(){
         color="31m"
     elif [[ "$1" =~ "[DEBUG]" ]];then
         color="33m"
+    elif [[ "$1" =~ "[CHECK]" ]];then
+        color="34m"
     else
         color=""
     fi

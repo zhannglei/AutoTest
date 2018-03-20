@@ -37,9 +37,9 @@ elif [ "$count" == 1 ];then
     other_eth1_ipv6_address=`python ../tools/cli.py -i ${other_ssh_ip} -c "${cmd}"`
     ping6 -I eth1 $other_eth1_ipv6_address -c 4
     if [ $? == 0 ];then
-        logger "ping eth2 $other_eth1_ipv6_address [PASS]"
+        logger "ping6 eth1 $other_eth1_ipv6_address [PASS]"
     else
-        logger "ping eth2 $other_eth1_ipv6_address [FAIL]"
+        logger "ping6 eth1 $other_eth1_ipv6_address [FAIL]"
         ERROR=$((ERROR+1))
     fi
 
@@ -47,9 +47,9 @@ elif [ "$count" == 1 ];then
     other_eth2_ipv6_address=`python ../tools/cli.py -i ${other_ssh_ip} -c "${cmd}"`
     ping6 -I eth2 $other_eth2_ipv6_address -c 4
     if [ $? == 0 ];then
-        logger "ping eth2 $other_eth2_ipv6_address [PASS]"
+        logger "ping6 eth2 $other_eth2_ipv6_address [PASS]"
     else
-        logger "ping eth2 $other_eth2_ipv6_address [FAIL]"
+        logger "ping6 eth2 $other_eth2_ipv6_address [FAIL]"
         ERROR=$((ERROR+1))
     fi
 

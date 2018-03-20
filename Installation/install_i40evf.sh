@@ -17,3 +17,10 @@ cd ${i40e_pkg}src
 make install
 rmmod i40evf
 modprobe i40evf
+
+dhclient -r eth1
+dhclient -r eth2
+
+sleep 2
+dhclient
+sleep 5

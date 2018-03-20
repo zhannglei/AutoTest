@@ -20,9 +20,9 @@ for ((i=0; i<${#bus_list[*]}; i++));do
     logger "$b [INFO]"
     logger "`ethtool -i ${eth}`"
     if [ "$b" != "" ] && [ "${get_driver}" == "${exp_driver}" ];then
-        logger "device:{eth} bus:${exp_bus} net:${exp_net} driver:${get_driver} check [PASS]"
+        logger "device:${eth} bus:${exp_bus} net:${exp_net} driver:${get_driver} check [PASS]"
     else
-        logger "device:{eth} bus:${exp_bus} net:${exp_net} driver:${get_driver} check [FAIL]"
+        logger "device:${eth} bus:${exp_bus} net:${exp_net} driver:${get_driver} check [FAIL]"
         ERROR=$(($ERROR+1))
     fi
 done

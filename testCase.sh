@@ -48,6 +48,8 @@ P1_NET=A-P1
 # neutron  net-show
 
 node_vm_info=""
+rpm -q jq-1.5-1.el7.x86_64 > /dev/null || rpm -i echo "Intel@123" | sudo -S rpm -i Installation/rpm/jq-1.5-1.el7.x86_64.rpm
+sleep 3
 nodes=$(nova hypervisor-list |grep enabled |awk '{print $4}')
 for node in ${nodes};do
     tmp=$(nova hypervisor-show ${node})
@@ -74,7 +76,6 @@ elif [ "${vms}" == "2" ];then
         nod=`echo "$i" |awk -F\| '{print $1}'`
         unused_vms=`echo "$i" |awk -F\| '{print $2}'`
         if [ "${hosts}" == "1" ];then
-            echo "This config not completed"
             if [[ ${unused_vms} -ge ${vms} ]];then
                 while [[ ${#cmds[*]} -lt ${vms} ]];do
                     cmds[${#cmds[*]}]="$cmd ${vm_name}_${#cmds[*]} --availability-zone nova:${nod}"
@@ -158,6 +159,7 @@ while read line;do
     for file in ${files};do
         logger "AutoTest/scp_in.exp ${transfer_node} ${netns} ${ip}  ${file} [DEBUG]"
         AutoTest/scp_in.exp ${transfer_node} ${netns} ${ip}  ${file} |tee -a ${LOGFILE_PATH}
+        sleep 2
     done
 
     #copy AutoTest script to VM

@@ -34,8 +34,7 @@ proc main {} {
     spawn ssh $host0
     expect "*password:*" { send "$wrsrootpswd\r" }
 
-    expect ":~" { send "sudo sed -i '/$host1/d' /root/.ssh/known_hosts\r" }
-    expect "Password:" { send "$wrsrootpswd\r" }
+    expect ":~" { send "echo $wrsrootpswd | sudo -S sed -i '/$host1/d' /root/.ssh/known_hosts\r" }
     sleep 1
     send "sudo sed -i '/^*/d' /etc/ssh/ssh_known_hosts\r"
     sleep 1
