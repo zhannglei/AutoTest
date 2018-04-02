@@ -32,7 +32,7 @@ for eth in eth1 eth2;do
 
     if [ "${IS_SRIOV}" == "1" ];then
         speed=`ethtool ${eth} |grep "Speed" |awk '{print $2}'`
-        if [ "${speed}" == "10000Mb/s" ];then
+        if [ "${speed}" == "40000Mb/s" ];then
             logger "${eth} speed check [PASS]"
         else
             logger "${eth} speed check [FAIL]"

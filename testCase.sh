@@ -48,7 +48,8 @@ P1_NET=A-P1
 # neutron  net-show
 
 node_vm_info=""
-rpm -q jq-1.5-1.el7.x86_64 > /dev/null || rpm -i echo "Intel@123" | sudo -S rpm -i Installation/rpm/jq-1.5-1.el7.x86_64.rpm
+rpm -q jq-1.5-1.el7.x86_64 > /dev/null || echo "Intel@123" | sudo -S rpm -i Installation/rpm/oniguruma-5.9.5-3.el7.x86_64.rpm
+rpm -q jq-1.5-1.el7.x86_64 > /dev/null || echo "Intel@123" | sudo -S rpm -i Installation/rpm/jq-1.5-1.el7.x86_64.rpm
 sleep 3
 nodes=$(nova hypervisor-list |grep enabled |awk '{print $4}')
 for node in ${nodes};do
@@ -122,9 +123,9 @@ for ((i=0;i<${#cmds[*]};i++));do
     SSH_IP=`echo "$vm_info" |grep "${SSH_NET} network" |awk -F \| '{print $3}' |sed 's/\s//g'`
     SSH_MAC=`echo "$vm_info" |grep "\"${SSH_NET}\""|awk -F \| '{print $3}' |jq '.nic1.mac_address' |sed s/\"//g`
     P0_IP=`echo "$vm_info" |grep "${P0_NET} network" |awk -F \| '{print $3}' |sed 's/\s//g'`
-    P0_MAC=`echo "$vm_info" |grep "\"${P0_NET}\""|awk -F \| '{print $3}' |jq '.nic1.mac_address' |sed s/\"//g`
+    P0_MAC=`echo "$vm_info" |grep "\"${P0_NET}\""|awk -F \| '{print $3}' |jq '.nic2.mac_address' |sed s/\"//g`
     P1_IP=`echo "$vm_info" |grep "${P1_NET} network" |awk -F \| '{print $3}' |sed 's/\s//g'`
-    P1_MAC=`echo "$vm_info" |grep "\"${P1_NET}\""|awk -F \| '{print $3}' |jq '.nic1.mac_address' |sed s/\"//g`
+    P1_MAC=`echo "$vm_info" |grep "\"${P1_NET}\""|awk -F \| '{print $3}' |jq '.nic3.mac_address' |sed s/\"//g`
     if [ "${SSH_NET}" == "" ];then
         logger "Create VM [FAIL]"
         exit 1

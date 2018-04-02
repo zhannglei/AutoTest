@@ -1,8 +1,9 @@
+#!/usr/bin/env bash
 . ./config.sh
 function mount_huge(){
     [ ! -d /mnt/huge ] && mkdir -p /mnt/huge
     add_bashrc "mkdir -p /mnt/huge"
-    add_bashrc "mount -t hugetlbfs nodev /mnt/huge"
+    add_bashrc "mount |grep /mnt/huge >/dev/null ||  mount -t hugetlbfs nodev /mnt/huge"
     mount |grep /mnt/huge >/dev/null ||  mount -t hugetlbfs nodev /mnt/huge
     [ $? == 0 ] && echo "mount huge ok"
     echo 2048 > /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
