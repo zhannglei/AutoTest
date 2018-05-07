@@ -33,7 +33,7 @@ if [ "$count" == 0 ];then
         cd ~/AutoTest/Installation
         . ./bind_port.sh
         cd ${INSTALL_FOLDER}/dpdk*/examples/l2fwd/build
-        ./l2fwd -c 0xe -n 3 -- -p 0x3 -0${other_info_mac_0} -1${other_info_mac_1} &
+        ./l2fwd -c 0xe -n 3 -- -p 0x3 -0${other_info_mac_1} -1${other_info_mac_2} &
         logger "${case} --check finished-- [DEBUG]"
     fi
 
@@ -51,9 +51,9 @@ elif [ "$count" == 1 ];then
     cd ~/AutoTest/case
     rpm -i ~/AutoTest/Installation/rpm/tcl-8.5.13-8.el7.x86_64.rpm
     rpm -i ~/AutoTest/Installation/rpm/expect-5.45-14.el7_1.x86_64.rpm
-    tcpdump -i eth1 -b -c 10 > /tcpdump.log &
+    tcpdump -i eth2 -b -c 10 > /tcpdump.log &
     sleep 5
-    ./JumboFrame.exp "${other_info_mac_1}" "${other_info_ip_1}" "${other_info_mac_2}" "${other_info_ip_2}"
+    ./JumboFrame.exp "${other_info_mac_1}" "${other_info_ip_1}"
 
     count=`cat /tcpdump.log |grep -c 8800`
     if [ "${count}" -ge 10 ];then
@@ -62,7 +62,7 @@ elif [ "$count" == 1 ];then
         ERROR=$((ERROR+1))
         logger "get 8800 count ${count} [FAIL]"
     fi
-    logger "cat /tcpdump.log [DEBUG]"
+    logger "`cat /tcpdump.log` [DEBUG]"
     if [ "${ERROR}" == 0 ];then
         logger "${case} --check finished-- [PASS]"
     else

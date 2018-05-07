@@ -1,0 +1,10 @@
+#!/usr/bin/expect
+
+set timeout -1
+log_file ./l1.log
+
+spawn ./l1.sh -e
+
+expect eof
+disconnect
+

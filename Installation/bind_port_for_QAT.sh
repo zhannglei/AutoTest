@@ -39,4 +39,4 @@ for DEVICE in ${DEVICES}; do
     fi
 done
 
-mount_huge
+#mount_huge

@@ -12,6 +12,7 @@ rpm -i ../Installation/rpm/iperf*.rpm
 
 if [ "$count" == 0 ];then
     iperf3 -s &
+    sleep 3
     logger "${case} --check finished-- [DEBUG]"
 elif [ "$count" == 1 ];then
     other_info=`cat ../tmp/${case} |grep -v "SSH_IP=$vm_ip" |sed 's/ /\n/g'`
@@ -24,13 +25,20 @@ elif [ "$count" == 1 ];then
         ERROR=$((ERROR+1))
     fi
     # result=`tail -4 log.log | head -n1 |awk '{print $7}'`
-    if [ `echo $?`==0 ];then
+    if [ $? != 0 ];then
+        logger "iperf stress test [FAIL]"
+        ERROR=$((ERROR+1))
+    fi
+
+    cat iperf.log |grep -i "iperf done"
+    if [ $? == 0 ];then
         logger "iperf stress test [PASS]"
     else
         logger "iperf stress test [FAIL]"
         ERROR=$((ERROR+1))
     fi
-    logger "`cat iperf.log` [DEBUG]"
+
+    logger "`cat iperf.log`"
 
     if [ "${ERROR}" == 0 ];then
         logger "${case} --need to check the result-- [CHECK]"

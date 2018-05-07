@@ -51,13 +51,15 @@ node_vm_info=""
 rpm -q jq-1.5-1.el7.x86_64 > /dev/null || echo "Intel@123" | sudo -S rpm -i Installation/rpm/oniguruma-5.9.5-3.el7.x86_64.rpm
 rpm -q jq-1.5-1.el7.x86_64 > /dev/null || echo "Intel@123" | sudo -S rpm -i Installation/rpm/jq-1.5-1.el7.x86_64.rpm
 sleep 3
-nodes=$(nova hypervisor-list |grep enabled |awk '{print $4}')
+nodes=$(nova hypervisor-list |grep enabled |awk '{print $2","$4}')
 for node in ${nodes};do
-    tmp=$(nova hypervisor-show ${node})
+    node_id=$(echo $node |awk -F , '{print $1}')
+    node_name=$(echo $node |awk -F , '{print $2}')
+    tmp=$(nova hypervisor-show ${node_id})
     total=`echo "${tmp}" |grep -w vcpus_node |awk -F \| '{print $3}' |jq '.["0"]'`
     used=`echo "${tmp}" |grep -w vcpus_used |awk '{print $4}' |awk -F \. '{print $1}'`
     can_vms=$(($(($total-$used))/4))
-    node_vm_info=$node_vm_info" $node|$can_vms"
+    node_vm_info=$node_vm_info" $node_id|$node_name|$can_vms"
 done
 
 image_id=$(glance image-list |egrep -i "\s${image_name}\s" |awk '{print $2}')
@@ -74,17 +76,21 @@ if [ "${vms}" == "1" ];then
     cmds[${#cmds[*]}]="${cmd} ${vm_name}"
 elif [ "${vms}" == "2" ];then
     for i in  $node_vm_info; do
-        nod=`echo "$i" |awk -F\| '{print $1}'`
-        unused_vms=`echo "$i" |awk -F\| '{print $2}'`
+        node_id=`echo "$i" |awk -F\| '{print $1}'`
+        node_name=`echo "$i" |awk -F\| '{print $2}'`
+        if [ "$node_name" == "WFT-2" ];then
+            continue
+        fi
+        unused_vms=`echo "$i" |awk -F\| '{print $3}'`
         if [ "${hosts}" == "1" ];then
             if [[ ${unused_vms} -ge ${vms} ]];then
                 while [[ ${#cmds[*]} -lt ${vms} ]];do
-                    cmds[${#cmds[*]}]="$cmd ${vm_name}_${#cmds[*]} --availability-zone nova:${nod}"
+                    cmds[${#cmds[*]}]="$cmd ${vm_name}_${#cmds[*]} --availability-zone nova:${node_name}"
                 done
             fi
         elif [ "${hosts}" == "2" ];then
             if [[ ${unused_vms} -ge 1 ]];then
-                cmds[${#cmds[*]}]="$cmd ${vm_name}_${nod} --availability-zone nova:${nod}"
+                cmds[${#cmds[*]}]="$cmd ${vm_name}_${node_name} --availability-zone nova:${node_name}"
                 if [[ ${#cmds[*]} -ge ${vms} ]];then
                     break
                 fi

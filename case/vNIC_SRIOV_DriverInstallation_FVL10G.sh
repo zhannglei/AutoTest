@@ -2,7 +2,7 @@
 
 cd $(dirname ${BASH_SOURCE[0]})
 
-. ../config/DPDK_VM_Installation_FVL10G.ini
+. ../config/vNIC_SRIOV_DriverInstallation_FVL10G.ini
 . ./common.sh
 
 cd ../Installation
@@ -18,7 +18,7 @@ cd ${SCRIPT_FOLDER}
 version=`modinfo i40evf|egrep "^version" |awk '{print $2}'`
 logger "`modinfo i40evf` [INFO]"
 
-if [ "${version}" == "3.1.4" ];then
+if [ "${version}" == "3.5.6" ];then
     logger "${case} --check finished-- [PASS]"
 else
     logger "${case} --check finished-- [FAIL]"

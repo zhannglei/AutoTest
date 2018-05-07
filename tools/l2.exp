@@ -1,0 +1,19 @@
+#!/usr/bin/expect
+
+set timeout -1
+set cmd  [lindex $argv 0]
+
+log_file ./l2.log
+
+spawn ./l2.sh
+
+expect "TESTMAC*"
+send "$cmd\r"
+
+expect "Completed*"
+send "\r"
+
+expect "TESTMAC*"
+send "exit\r"
+
+expect eof

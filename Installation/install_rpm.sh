@@ -9,9 +9,13 @@ cd ${RPM_FOLDER}
 rpm_tar=`ls -F |grep "[^/]$"`
 gcc_rpm_folder=`ls -F |grep -i "ICC.*/$"`
 qat_rpm_folder=`ls -F |grep -i "QAT.*/$"`
-[ "${gcc_rpm_folder}" == "" ] || [ "${qat_rpm_folder}" == "" ] && tar -xvf ${rpm_tar}
-gcc_rpm_folder=`ls -F |grep -i "ICC.*/$"`
-qat_rpm_folder=`ls -F |grep -i "QAT.*/$"`
+gtest_rpm_folder=`ls -F |grep -i "GTEST_RPM.*/$"`
+if [ "${gcc_rpm_folder}" == "" ] || [ "${qat_rpm_folder}" == "" ];then
+    tar -xvf ${rpm_tar}
+    gcc_rpm_folder=`ls -F |grep -i "ICC.*/$"`
+    qat_rpm_folder=`ls -F |grep -i "QAT.*/$"`
+    gtest_rpm_folder=`ls -F |grep -i "GTEST_RPM.*/$"`
+fi
 cd ${gcc_rpm_folder}
 
 rpm_install -i tcl-8.5.13-8.el7.x86_64
@@ -29,6 +33,18 @@ rpm_install -i libhugetlbfs-devel-2.16-12.el7.x86_64
 rpm_install -i libpcap-devel-1.5.3-8.el7.x86_64
 rpm_install -i numactl-devel-2.0.9-6.el7_2.x86_64
 rpm_install -i expect-5.45-14.el7_1.x86_64
+
+cd ..
+cd ${gtest_rpm_folder}
+rpm_install -i perl-Error-0.17020-2.el7.noarch
+rpm_install -i perl-TermReadKey-2.30-20.el7.x86_64
+rpm -U perl-Git-1.8.3.1-12.el7_4.noarch.rpm git-1.8.3.1-12.el7_4.x86_64.rpm libgnome-keyring-3.12.0-1.el7.x86_64.rpm
+rpm_install -i numactl-2.0.9-6.el7_2.x86_64
+rpm -U cmake-2.8.12.2-2.el7.x86_64.rpm libarchive-3.1.2-10.el7_2.x86_64.rpm
+rpm_install -i gdb-7.6.1-100.el7.x86_64
+rpm_install -i dstat-0.7.2-12.el7.noarch
+rpm -U vim-common-7.4.160-2.el7.x86_64.rpm vim-enhanced-7.4.160-2.el7.x86_64.rpm vim-filesystem-7.4.160-2.el7.x86_64.rpm gpm-libs-1.20.7-5.el7.x86_64.rpm
+rpm_install -i mlocate-0.26-6.el7.x86_64
 
 cd ..
 cd ${qat_rpm_folder}
@@ -66,3 +82,5 @@ rpm_install -i libcom_err-devel-1.42.9-7.el7.x86_64
 rpm_install -i libverto-devel-0.2.5-4.el7.x86_64
 rpm_install -i krb5-devel-1.13.2-12.el7_2.x86_64
 rpm_install -i openssl-devel-1.0.1e-51.el7_2.7.x86_64
+cd ${SCRIPT_FOLDER}
+. ./install_gtest.sh

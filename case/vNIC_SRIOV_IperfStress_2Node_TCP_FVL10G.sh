@@ -10,9 +10,6 @@ driver=`ethtool -i eth1 | grep "^version" | awk '{print $2}'`
 if [ "$driver" != 3.4.2 ];then
 
     cd ~
-    if [ -e APP1 ];then
-        mv APP1 APP
-    fi
 
     cd ~/AutoTest/Installation
 

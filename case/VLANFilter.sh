@@ -22,6 +22,13 @@ elif [ "$count" == 1 ];then
         logger "ping eth1 $other_eth1_ip [FAIL]"
         ERROR=$((ERROR+1))
     fi
+    ping -I eth2 $other_eth1_ip -c 4
+    if [ $? != 0 ];then
+        logger "ping eth2 $other_eth1_ip [PASS]"
+    else
+        logger "ping eth2 $other_eth1_ip [FAIL]"
+        ERROR=$((ERROR+1))
+    fi
 
     other_eth2_ip=`echo "$other_info" |grep 'P1_IP=' |awk -F \= '{print $2}'`
     ping -I eth2 $other_eth2_ip -c 4
@@ -29,6 +36,13 @@ elif [ "$count" == 1 ];then
         logger "ping eth2 $other_eth2_ip [PASS]"
     else
         logger "ping eth2 $other_eth2_ip [FAIL]"
+        ERROR=$((ERROR+1))
+    fi
+    ping -I eth1 $other_eth2_ip -c 4
+    if [ $? != 0 ];then
+        logger "ping eth1 $other_eth2_ip [PASS]"
+    else
+        logger "ping eth1 $other_eth2_ip [FAIL]"
         ERROR=$((ERROR+1))
     fi
 
@@ -42,6 +56,13 @@ elif [ "$count" == 1 ];then
         logger "ping6 eth1 $other_eth1_ipv6_address [FAIL]"
         ERROR=$((ERROR+1))
     fi
+    ping6 -I eth2 $other_eth1_ipv6_address -c 4
+    if [ $? != 0 ];then
+        logger "ping6 eth2 $other_eth1_ipv6_address [PASS]"
+    else
+        logger "ping6 eth2 $other_eth1_ipv6_address [FAIL]"
+        ERROR=$((ERROR+1))
+    fi
 
     cmd="ifconfig eth2 |grep inet6  |awk '{print \$2}'"
     other_eth2_ipv6_address=`python ../tools/cli.py -i ${other_ssh_ip} -c "${cmd}"`
@@ -50,6 +71,13 @@ elif [ "$count" == 1 ];then
         logger "ping6 eth2 $other_eth2_ipv6_address [PASS]"
     else
         logger "ping6 eth2 $other_eth2_ipv6_address [FAIL]"
+        ERROR=$((ERROR+1))
+    fi
+    ping6 -I eth1 $other_eth2_ipv6_address -c 4
+    if [ $? != 0 ];then
+        logger "ping6 eth1 $other_eth2_ipv6_address [PASS]"
+    else
+        logger "ping6 eth1 $other_eth2_ipv6_address [FAIL]"
         ERROR=$((ERROR+1))
     fi
 

@@ -61,7 +61,8 @@ proc main {} {
             send "sudo ip netns exec ${netns} ssh root@$host1\r"
             expect "Password:" {send "$wrsrootpswd\r"}
             expect "*(yes/no)" {send "yes\r"}
-            expect "*root*"  {send "$rootpswd\r"}
+            set timeout 100
+            expect "*root*password"  {send "$rootpswd\r"}
             sleep 3
             }
 

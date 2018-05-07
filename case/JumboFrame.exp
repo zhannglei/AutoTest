@@ -1,8 +1,6 @@
 #!/usr/bin/expect -f
 set mac1 [lindex $argv 0]
 set ip1 [lindex $argv 1]
-set mac2 [lindex $argv 2]
-set ip2 [lindex $argv 3]
 
 set timeout 4
 
