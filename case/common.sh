@@ -20,7 +20,7 @@ function logger(){
         if [ ! -d ${DIR} ];then
             mkdir -p ${DIR}
         fi
-        echo "[${DATE}] $1" >> ${LOGFILE_PATH}
+        echo -e "[${DATE}] $1" >> ${LOGFILE_PATH}
     fi
 }
 

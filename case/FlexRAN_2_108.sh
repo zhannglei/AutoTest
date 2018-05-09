@@ -40,7 +40,7 @@ while [ $i -lt ${#cmds[*]} ]; do
         cd ${FLEXRAN_SRC}/bin/lte/testmac
         ~/AutoTest/tools/l2.exp "$cmd"
         kill -9 $(ps -ef |grep -E 'testmac|l1app|l1.exp'  |awk '{print $2}')
-        logger "$cmd $t time result \r`cat $log` [INFO]"
+        logger "$cmd $t time result \n`cat $log` [INFO]"
         value=`cat $log |grep "Total DL + UL (Per Cell)" |awk -F \: '{print $2}' |sed 's/\s//g' |head -n 1`
         if [ $t -eq 1 ];then
             x=$value
@@ -56,7 +56,7 @@ while [ $i -lt ${#cmds[*]} ]; do
     i=$((i+1))
 done
 
-logger "Test case summary result \r`cat ${tmp}`"
+logger "Test case summary result \n`cat ${tmp}`"
 
 
 if [ "${ERROR}" == 0 ];then
