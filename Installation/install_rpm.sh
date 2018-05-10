@@ -84,3 +84,10 @@ rpm_install -i krb5-devel-1.13.2-12.el7_2.x86_64
 rpm_install -i openssl-devel-1.0.1e-51.el7_2.7.x86_64
 cd ${SCRIPT_FOLDER}
 . ./install_gtest.sh
+lspci |grep XL710
+if [ $? == 0 ];then
+    echo "Network is SRIOV, will install i40evf driver"
+    sleep 2
+    cd ${SCRIPT_FOLDER}
+    . ./install_i40evf.sh
+fi

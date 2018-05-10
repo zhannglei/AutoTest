@@ -3,11 +3,10 @@
 . ./config.sh
 . ./common_fun.sh
 
-#check_rpm_and_install
+check_rpm_and_install
 lspci |grep 37c9
 if [ $? == 0 ];then
     cd ${INSTALL_FOLDER}
-    echo ${INSTALL_FOLDER}
     if [ -f qat_package/build/adf_ctl ];then
         echo "QAT has already installed"
     else

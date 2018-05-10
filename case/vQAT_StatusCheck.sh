@@ -13,7 +13,7 @@ ERROR=$(($ERROR+0))
 if [ ! -f /reboot.txt ];then
 
     # Check the QAT device
-    for i in 7 8;do
+    for i in 7;do
         get_device=`lspci |grep Co- |grep "00:0${i}" | awk '{print $6}'`
         if [ "${get_device}" == "${exp_device}" ];then
             logger "00:0${i}.0 Co-processor:  Intel Corporation Device ${exp_device} (rev 04) [PASS]"
@@ -43,7 +43,7 @@ if [ ! -f /reboot.txt ];then
 
 
     # Check the software is started
-    for i in 0 1;do
+    for i in 0;do
         started_status=`service qat_service status | grep "qat_dev${i}" |awk '{print $NF}'`
         if [ "${started_status}" == up ];then
             logger "qat_dev${i} - type: c6xxvf,  inst_id: 0,  bsf: 00:0$(($i+7)).0,  #accel: 1 #engines: 1 state: up
@@ -60,7 +60,7 @@ if [ ! -f /reboot.txt ];then
 
     sleep 2
 
-    for i in 0 1;do
+    for i in 0;do
         started_status=`service qat_service status | grep "qat_dev${i}" |awk '{print $NF}'`
         if [ "${started_status}" == up ];then
             logger "qat_dev${i} - type: c6xxvf,  inst_id: 0,  bsf: 00:0$(($i+7)).0,  #accel: 1 #engines: 1 state: up
@@ -77,7 +77,7 @@ if [ ! -f /reboot.txt ];then
 
     sleep 2
 
-    for i in 0 1;do
+    for i in 0;do
         started_status=`service qat_service status | grep "qat_dev${i}" |awk '{print $NF}'`
         if [ "${started_status}" == down ];then
             logger "qat_dev${i} - type: c6xxvf,  inst_id: 0,  bsf: 00:0$(($i+7)).0,  #accel: 1 #engines: 1 state: down
@@ -107,7 +107,7 @@ if [ ! -f /reboot.txt ];then
     logger "runner install --check continue-- [PASS]"
     exit
 else
-    for i in 0 1;do
+    for i in 0;do
         started_status=`service qat_service status | grep "qat_dev${i}" |awk '{print $NF}'`
         if [ "${started_status}" == up ];then
             logger "qat_dev${i} - type: c6xxvf,  inst_id: 0,  bsf: 00:0$(($i+7)).0,  #accel: 1 #engines: 1 state: up
